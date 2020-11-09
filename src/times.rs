@@ -52,30 +52,20 @@ static LOCATION_ROLE_TO_TIMEZONE: Lazy<HashMap<RoleId, Tz>> = Lazy::new(|| {
 
 pub struct Handler;
 
-static WORD_SEPARATOR: Lazy<Regex> = Lazy::new(|| {
-    // Regex::new("[ ,.;-=!@#$%^&*()_+-/<>'|{}\\\\\"\\[\\]]+").expect("Failed to compile regex")
-    Regex::new("[^a-zA-Z0-9:]+").expect("Failed to compile regex")
-});
+static WORD_SEPARATOR: Lazy<Regex> =
+    Lazy::new(|| Regex::new("[^a-zA-Z0-9:]+").expect("Failed to compile regex"));
+
+const HOURS_CAPTURE_NAME: &'static str = "hours";
+const MINUTES_CAPTURE_NAME: &'static str = "minutes";
+const AM_OR_PM_CAPTURE_NAME: &'static str = "am_or_pm";
 
 static TIME_REGEX_TO_PARSE_FORMATS: Lazy<Vec<Parser>> = Lazy::new(|| {
     vec![
-        // Parser {
-        //         regex: Regex::new("^((?:(?:1[012])|(?:0?[123456789])):(?:(?:[12345]\\d)|(?:0[123456789]))\\s(?:[AP]M))\\s([a-zA-Z]{2,3})").expect("Failed to compile regex"),
-        //         format:  "%_I:%M %p".to_string(),
-        // },
         Parser {
-            regex: Regex::new(
-                "^((?:(?:1[012])|(?:0?[123456789])):(?:(?:[12345]\\d)|(?:0\\d))\\s(?:[apAP][mM]))(?:$|[^a-zA-Z0-9])",
-            )
-            .expect("Failed to compile regex"),
-            format: "%_I:%M %p".to_string(),
+            regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))[ :]?(?P<minutes>(?:[12345]\\d)|(?:0\\d))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])").expect("Failed to compile regex"),
         },
         Parser {
-            regex: Regex::new(
-                "^((?:(?:1[012])|(?:0?[123456789])):(?:(?:[12345]\\d)|(?:0\\d))(?:[apAP][mM]))(?:$|[^a-zA-Z0-9])",
-            )
-            .expect("Failed to compile regex"),
-            format: "%_I:%M%p".to_string(),
+            regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])").expect("Failed to compile regex"),
         },
     ]
 });
@@ -145,6 +135,11 @@ impl EventHandler for Handler {
             }
         }
 
+        if times.is_empty() {
+            debug!("No times found in message");
+            return;
+        }
+
         let mut reply_blocks = Vec::new();
 
         // Convert to destination time zones
@@ -189,21 +184,62 @@ fn skip_word(text: &str) -> Option<&str> {
     WORD_SEPARATOR.splitn(text, 2).skip(1).next()
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+enum AmOrPm {
+    AM,
+    PM,
+}
+
+impl AmOrPm {
+    fn to_hour_in_mility_time(&self, hour: u32) -> Option<u32> {
+        match (hour, self) {
+            (1..=11, AmOrPm::AM) => Some(hour),
+            (1..=11, AmOrPm::PM) => Some(hour + 12),
+            (12, AmOrPm::AM) => Some(0),
+            (12, AmOrPm::PM) => Some(12),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct TimeComponents {
-    time: String,
+    time: NaiveTime,
     timezone: Option<String>,
 }
 
 impl TimeComponents {
     fn from_str(text: &str, regex: &Regex) -> Option<TimeComponents> {
         regex.captures(text).and_then(|captures| {
-            let time = captures.get(1)?.as_str().to_uppercase();
-            let timezone = captures
-                .get(2)
-                .map(|regex_match| regex_match.as_str().to_string());
+            let hour = captures
+                .name(HOURS_CAPTURE_NAME)
+                .map(|val| val.as_str())
+                .and_then(|val| val.parse::<u32>().ok())?;
 
-            Some(TimeComponents { time, timezone })
+            let min = captures
+                .name(MINUTES_CAPTURE_NAME)
+                .map(|val| val.as_str())
+                .and_then(|val| val.parse::<u32>().ok())
+                .unwrap_or(0);
+
+            let sec = 0;
+
+            let am_or_pm = captures
+                .name(AM_OR_PM_CAPTURE_NAME)
+                .map(|val| val.as_str().to_uppercase())
+                .and_then(|val| match &val as &str {
+                    "AM" => Some(AmOrPm::AM),
+                    "PM" => Some(AmOrPm::PM),
+                    _ => None,
+                })?;
+
+            let hour = am_or_pm.to_hour_in_mility_time(hour)?;
+            let time = NaiveTime::from_hms_opt(hour, min, sec)?;
+
+            Some(TimeComponents {
+                time,
+                timezone: None,
+            })
         })
     }
 }
@@ -211,7 +247,6 @@ impl TimeComponents {
 #[derive(Debug, Clone)]
 struct Parser {
     regex: Regex,
-    format: String,
 }
 
 impl Parser {
@@ -223,7 +258,7 @@ impl Parser {
         let timezone = local_tz?;
         debug!("[Local Timezone] {}", timezone);
 
-        let local_time = parse_time(&time_components.time, &self.format)?;
+        let local_time = time_components.time;
         debug!("[Parsed Time] {}", local_time);
 
         let date = Utc::now().date().with_timezone(&timezone);
@@ -236,15 +271,5 @@ impl Parser {
         debug!("[DateTime in UTC] {}", utc_datetime);
 
         Some(utc_datetime)
-    }
-}
-
-fn parse_time(text: &str, format: &str) -> Option<NaiveTime> {
-    match NaiveTime::parse_from_str(text, format) {
-        Ok(time) => Some(time),
-        Err(reason) => {
-            warn!("Failed to parse local time: {}", reason);
-            None
-        }
     }
 }
