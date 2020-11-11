@@ -1,5 +1,5 @@
 [package]
-name = "server-manager"
+name = "discord-server-manager"
 version = "0.1.0"
 authors = ["Connor Wenck <none@example.com>"]
 edition = "2018"

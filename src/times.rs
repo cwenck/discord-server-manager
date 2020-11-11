@@ -1,5 +1,6 @@
 use std::{collections::HashMap, fmt::Debug};
 
+use crate::config;
 use chrono::{DateTime, NaiveTime, Utc};
 use chrono_tz::Tz;
 use log::{debug, trace, warn};
@@ -26,31 +27,21 @@ static OUTPUT_TIMEZONES: Lazy<Vec<(&'static str, Tz)>> = Lazy::new(|| {
     ]
 });
 
-static LOCATION_ROLE_TO_TIMEZONE: Lazy<HashMap<RoleId, Tz>> = Lazy::new(|| {
-    let mut map: HashMap<RoleId, Tz> = HashMap::new();
+pub struct Handler {
+    location_role_map: HashMap<RoleId, Tz>,
+}
 
-    map.insert(
-        // ID of the Location-US-East discord role
-        RoleId(775033717419671602),
-        chrono_tz::America::New_York,
-    );
+impl Handler {
+    pub fn new(config: &config::Config) -> Handler {
+        let location_role_map: HashMap<RoleId, Tz> = config
+            .location_roles()
+            .iter()
+            .map(|location_role| (location_role.role_id(), location_role.timezone()))
+            .collect();
 
-    map.insert(
-        // ID of the Location-US-West discord role
-        RoleId(775033814715203604),
-        chrono_tz::America::Los_Angeles,
-    );
-
-    map.insert(
-        // ID of the Location-UK discord role
-        RoleId(775033844625047552),
-        chrono_tz::Europe::London,
-    );
-
-    map
-});
-
-pub struct Handler;
+        Handler { location_role_map }
+    }
+}
 
 static WORD_SEPARATOR: Lazy<Regex> =
     Lazy::new(|| Regex::new("[^a-zA-Z0-9:]+").expect("Failed to compile regex"));
@@ -62,15 +53,21 @@ const AM_OR_PM_CAPTURE_NAME: &'static str = "am_or_pm";
 static TIME_REGEX_TO_PARSE_FORMATS: Lazy<Vec<Parser>> = Lazy::new(|| {
     vec![
         Parser {
-            regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))[ :]?(?P<minutes>(?:[12345]\\d)|(?:0\\d))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])").expect("Failed to compile regex"),
+            regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))[ :]?(?P<minutes>(?:[12345]\\d)|(?:0\\d))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])")
+            .expect("Failed to compile regex"),
         },
         Parser {
-            regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])").expect("Failed to compile regex"),
+            regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])")
+            .expect("Failed to compile regex"),
         },
     ]
 });
 
-async fn resolve_local_timezone(context: &Context, msg: &Message) -> Option<Tz> {
+async fn resolve_local_timezone(
+    location_role_map: &HashMap<RoleId, Tz>,
+    context: &Context,
+    msg: &Message,
+) -> Option<Tz> {
     let member = msg
         .member(context)
         .await
@@ -85,7 +82,7 @@ async fn resolve_local_timezone(context: &Context, msg: &Message) -> Option<Tz> 
     let timezones: Vec<Tz> = member
         .roles
         .iter()
-        .map(|id| LOCATION_ROLE_TO_TIMEZONE.get(id))
+        .map(|id| location_role_map.get(id))
         .filter(Option::is_some)
         .map(Option::unwrap)
         .copied()
@@ -122,7 +119,8 @@ impl EventHandler for Handler {
             trace!("[Partial Line] {}", line);
 
             for time_format in TIME_REGEX_TO_PARSE_FORMATS.iter() {
-                let local_tz = resolve_local_timezone(&context, &msg).await;
+                let local_tz =
+                    resolve_local_timezone(&self.location_role_map, &context, &msg).await;
                 if let Some(time) = time_format.parse(line, local_tz) {
                     times.push(time);
                     break;

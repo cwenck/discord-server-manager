@@ -1,20 +1,21 @@
+mod config;
 mod times;
 
-use std::env;
-
+use log::info;
 use serenity::Client;
 
 #[tokio::main]
 async fn main() {
     env_logger::builder()
         .filter(None, log::LevelFilter::Warn)
-        .filter_module("server_manager", log::LevelFilter::Debug)
+        .filter_module("discord_server_manager", log::LevelFilter::Debug)
         .init();
 
-    let token = env::var("BOT_TOKEN").expect("Discord bot token environment variable not set");
+    let config = config::Config::load();
+    info!("Loaded Configuration: {:?}", &config);
 
-    let mut client = Client::builder(token)
-        .event_handler(times::Handler)
+    let mut client = Client::builder(config.bot_token())
+        .event_handler(times::Handler::new(&config))
         .await
         .expect("Failed to create discord client");
 

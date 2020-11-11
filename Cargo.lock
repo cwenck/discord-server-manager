@@ -171,6 +171,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "discord-server-manager"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "chrono-tz",
+ "env_logger",
+ "log",
+ "once_cell",
+ "regex",
+ "serenity",
+ "tokio",
+]
+
+[[package]]
 name = "dtoa"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -976,20 +990,6 @@ dependencies = [
  "tracing-futures",
  "typemap_rev",
  "url",
-]
-
-[[package]]
-name = "server-manager"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "chrono-tz",
- "env_logger",
- "log",
- "once_cell",
- "regex",
- "serenity",
- "tokio",
 ]
 
 [[package]]
