@@ -10,14 +10,10 @@ use serenity::{
     async_trait,
     client::Context,
     client::EventHandler,
-    model::{
-        channel::Message,
-        id::{RoleId, UserId},
-    },
+    model::{channel::Message, id::RoleId},
     utils::MessageBuilder,
 };
 
-const BOT_ID: UserId = UserId(772211432098889758);
 const OUTPUT_TIME_FORMAT: &'static str = "%_I:%M %p %Z";
 static OUTPUT_TIMEZONES: Lazy<Vec<(&'static str, Tz)>> = Lazy::new(|| {
     vec![
@@ -104,7 +100,8 @@ async fn resolve_local_timezone(
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, context: Context, msg: Message) {
-        if msg.author.id == BOT_ID {
+        if msg.author.bot {
+            // Prevent the bot from responding to its own messages
             return;
         }
 
