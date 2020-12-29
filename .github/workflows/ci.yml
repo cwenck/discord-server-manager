@@ -120,7 +120,8 @@ jobs:
       - name: Compile
         uses: actions-rs/cargo@v1
         with:
-          command: build --release
+          command: build
+          args: --release
 
       - name: Build Image & Push to GitHub Packages
         uses: docker/build-push-action@v2
