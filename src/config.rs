@@ -30,9 +30,9 @@ impl Config {
     }
 
     fn parse_location_roles(text: &str) -> HashSet<LocationRole> {
-        text.split(",")
+        text.split(',')
             .filter_map(|location_role_str| {
-                let mut components_iter = location_role_str.splitn(2, ":");
+                let mut components_iter = location_role_str.splitn(2, ':');
                 let maybe_timezone = components_iter.next();
                 let maybe_role_id = components_iter.next();
 

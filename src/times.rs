@@ -176,7 +176,7 @@ impl EventHandler for Handler {
 }
 
 fn skip_word(text: &str) -> Option<&str> {
-    WORD_SEPARATOR.splitn(text, 2).skip(1).next()
+    WORD_SEPARATOR.splitn(text, 2).nth(1)
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
