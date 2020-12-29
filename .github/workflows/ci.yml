@@ -27,7 +27,7 @@ jobs:
           command: check
 
   fmt:
-    name: Check Code Format
+    name: Format
     runs-on: ubuntu-latest
 
     steps:
@@ -42,14 +42,20 @@ jobs:
           override: true
           components: rustfmt
 
-      - name: Cargo Check Code Format
+      - name: Cargo Code Formatter Version
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --version
+
+      - name: Cargo Code Format Check
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
   clippy:
-    name: Clippy
+    name: Static Analysis
     runs-on: ubuntu-latest
 
     steps:
@@ -64,14 +70,20 @@ jobs:
           override: true
           components: clippy
 
-      - name: Cargo Clippy
+      - name: Cargo Clippy Version
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --version
+
+      - name: Cargo Clippy Check
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: -- -D warnings
 
   test:
-    name: Test
+    name: Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -89,3 +101,34 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code 
+        uses: actions/checkout@v2
+
+      - name: Setup Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build Image & Push to GitHub Packages
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: test-image:latest-snapshot
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: cwenck/discord-server-manager/test-image
+          tag_with_ref: true
+
+      - name: Image Digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+      
