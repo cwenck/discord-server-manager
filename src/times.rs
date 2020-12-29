@@ -14,7 +14,7 @@ use serenity::{
     utils::MessageBuilder,
 };
 
-const OUTPUT_TIME_FORMAT: &'static str = "%_I:%M %p %Z";
+const OUTPUT_TIME_FORMAT: &str = "%_I:%M %p %Z";
 static OUTPUT_TIMEZONES: Lazy<Vec<(&'static str, Tz)>> = Lazy::new(|| {
     vec![
         ("UK", chrono_tz::Europe::London),
@@ -42,9 +42,9 @@ impl Handler {
 static WORD_SEPARATOR: Lazy<Regex> =
     Lazy::new(|| Regex::new("[^a-zA-Z0-9:]+").expect("Failed to compile regex"));
 
-const HOURS_CAPTURE_NAME: &'static str = "hours";
-const MINUTES_CAPTURE_NAME: &'static str = "minutes";
-const AM_OR_PM_CAPTURE_NAME: &'static str = "am_or_pm";
+const HOURS_CAPTURE_NAME: &str = "hours";
+const MINUTES_CAPTURE_NAME: &str = "minutes";
+const AM_OR_PM_CAPTURE_NAME: &str = "am_or_pm";
 
 static TIME_REGEX_TO_PARSE_FORMATS: Lazy<Vec<Parser>> = Lazy::new(|| {
     vec![
