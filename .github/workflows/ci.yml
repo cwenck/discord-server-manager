@@ -141,7 +141,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile
+          file: ./old-dockerfile
           push: true
           cache-from: type=registry,ref=cwenck/discord-server-manager:latest-snapshot
           cache-to: type=inline
