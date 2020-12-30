@@ -182,7 +182,7 @@ jobs:
         with:
           command: test
 
- docker:
+  docker:
     name: Docker
     runs-on: ubuntu-latest
     needs: [compile-release, test]
