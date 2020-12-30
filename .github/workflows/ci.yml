@@ -142,7 +142,6 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          pull: true
           push: true
           cache-from: type=registry,ref=cwenck/discord-server-manager:latest-snapshot
           cache-to: type=inline
