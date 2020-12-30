@@ -1,2 +1,7 @@
-target
+# Exclude the environment file
 .env
+
+# Exclude the target directory except any of the generated binaries
+target
+!target/release/discord-server-manager
+!target/debug/discord-server-manager
