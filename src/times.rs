@@ -169,7 +169,15 @@ impl EventHandler for Handler {
         let reply = reply_builder.build();
         debug!("[Reply] {}", reply);
 
-        if let Err(reason) = msg.channel_id.say(context, reply).await {
+        if let Err(reason) = msg
+            .channel_id
+            .send_message(&context, |reply_msg| {
+                reply_msg.content(&reply);
+                reply_msg.reference_message(&msg);
+                reply_msg
+            })
+            .await
+        {
             warn!("Failed to send message reply: {}", reason);
         }
     }
