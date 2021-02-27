@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveTime, TimeZone, Utc};
 
 use crate::{extractor::Extractor, time_converter::model::TimeComponents};
 
