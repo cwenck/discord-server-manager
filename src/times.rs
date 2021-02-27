@@ -52,6 +52,7 @@ static TIME_REGEX_TO_PARSE_FORMATS: Lazy<Vec<Parser>> = Lazy::new(|| {
             regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))[ :]?(?P<minutes>(?:[12345]\\d)|(?:0\\d))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])")
             .expect("Failed to compile regex"),
         },
+        // (?:(?<![a-zA-Z0-9])(?P<hours>(?:1[012])|(?:0?[123456789]))\s?(?P<time_kind>[apAP][mM])(?![a-zA-Z0-9]))+
         Parser {
             regex: Regex::new("^(?P<hours>(?:1[012])|(?:0?[123456789]))\\s?(?P<am_or_pm>[apAP][mM])(?:$|[^a-zA-Z0-9])")
             .expect("Failed to compile regex"),
