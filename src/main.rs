@@ -1,7 +1,6 @@
 mod config;
 mod extractor;
 mod time_converter;
-mod times;
 mod user_roles;
 
 use std::sync::Arc;

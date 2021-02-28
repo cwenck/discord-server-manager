@@ -122,8 +122,6 @@ impl<'a> MessageHandler {
         }
 
         let mut content = MessageBuilder::new();
-        content.push_line("New Bot:");
-
         for time in times {
             let block = self
                 .output_timezones
