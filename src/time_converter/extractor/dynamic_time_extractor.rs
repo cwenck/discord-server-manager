@@ -133,9 +133,8 @@ mod test {
 
     use super::*;
 
-    // r"(?i:(?<!\w)(?P<hours>(?:1[012])|(?:0?[123456789]))\s*(?P<time_kind>[ap]m)(?!\w))"
-
     #[test]
+    #[should_panic]
     fn test_missing_capture_groups_1() {
         DynamicTimeExtractor::new(r"");
     }
