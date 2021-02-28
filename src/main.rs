@@ -4,6 +4,8 @@ mod time_converter;
 mod times;
 mod user_roles;
 
+use std::sync::Arc;
+
 use log::info;
 use serenity::Client;
 
@@ -14,11 +16,20 @@ async fn main() {
         .filter_module("discord_server_manager", log::LevelFilter::Debug)
         .init();
 
-    let config = config::Config::load();
+    let config = Arc::new(config::Config::load());
     info!("Loaded Configuration: {:?}", &config);
 
+    let user_role_cache = Arc::new(user_roles::UserRoleCache::new());
+    info!("Created user role cache");
+
     let mut client = Client::builder(config.bot_token())
-        .event_handler(times::Handler::new(&config))
+        .event_handler(user_roles::UserRoleUpdateHandler::new(
+            user_role_cache.clone(),
+        ))
+        .event_handler(time_converter::MessageHandler::new(
+            config.clone(),
+            user_role_cache.clone(),
+        ))
         .await
         .expect("Failed to create discord client");
 

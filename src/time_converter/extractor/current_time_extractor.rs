@@ -5,7 +5,7 @@ use crate::{extractor::Extractor, time_converter::model::TimeComponents};
 
 use super::TimeExtractorContext;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct CurrentTimeExtractor {
     regex: Regex,
 }

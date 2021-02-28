@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use thiserror::Error;
 
 use serenity::{
@@ -13,8 +13,9 @@ use serenity::{
 
 use tokio::sync::RwLock;
 
+type UserRoleCacheResult<R> = Result<R, UserRoleCacheError>;
 #[derive(Error, Debug)]
-pub enum UserRoleUpdateHandlerError {
+pub enum UserRoleCacheError {
     #[error(
         "Failed to fetch a member with ID [{}] from the guild with ID {}. Caused by: {:?}",
         user_id,
@@ -28,22 +29,18 @@ pub enum UserRoleUpdateHandlerError {
     },
 }
 
-type UserRoleUpdateHandlerResult<R> = Result<R, UserRoleUpdateHandlerError>;
-
 #[derive(Debug)]
-struct UserRoleUpdateHandler {
+pub struct UserRoleCache {
     user_roles: RwLock<HashMap<UserId, Vec<RoleId>>>,
 }
 
-#[async_trait]
-impl EventHandler for UserRoleUpdateHandler {
-    async fn guild_member_update(&self, _ctx: Context, event: GuildMemberUpdateEvent) {
-        self.update_roles(event.user.id, &event.roles).await;
+impl UserRoleCache {
+    pub fn new() -> UserRoleCache {
+        Self {
+            user_roles: RwLock::new(HashMap::new()),
+        }
     }
-}
 
-#[allow(dead_code)]
-impl UserRoleUpdateHandler {
     async fn update_roles(&self, user_id: UserId, roles: &[RoleId]) {
         let mut user_roles = self.user_roles.write().await;
         user_roles.insert(user_id, Vec::from(roles));
@@ -56,11 +53,11 @@ impl UserRoleUpdateHandler {
 
     pub async fn roles(
         &self,
-        ctx: Context,
+        ctx: &Context,
         user_id: UserId,
         guild_id: GuildId,
-    ) -> UserRoleUpdateHandlerResult<Vec<RoleId>> {
-        use UserRoleUpdateHandlerError::FailedToFetchGuildMemberError;
+    ) -> UserRoleCacheResult<Vec<RoleId>> {
+        use UserRoleCacheError::FailedToFetchGuildMemberError;
 
         if let Some(cached_roles) = self.cached_roles(user_id).await {
             return Ok(cached_roles);
@@ -79,5 +76,23 @@ impl UserRoleUpdateHandler {
         let roles = member.roles;
         self.update_roles(user_id, &roles).await;
         Ok(roles)
+    }
+}
+
+#[derive(Debug)]
+pub struct UserRoleUpdateHandler {
+    cache: Arc<UserRoleCache>,
+}
+
+impl UserRoleUpdateHandler {
+    pub fn new(cache: Arc<UserRoleCache>) -> Self {
+        Self { cache }
+    }
+}
+
+#[async_trait]
+impl EventHandler for UserRoleUpdateHandler {
+    async fn guild_member_update(&self, _ctx: Context, event: GuildMemberUpdateEvent) {
+        self.cache.update_roles(event.user.id, &event.roles).await;
     }
 }

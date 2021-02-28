@@ -27,6 +27,7 @@ pub struct Handler {
     location_role_map: HashMap<RoleId, Tz>,
 }
 
+#[allow(dead_code)]
 impl Handler {
     pub fn new(config: &config::Config) -> Handler {
         let location_role_map: HashMap<RoleId, Tz> = config

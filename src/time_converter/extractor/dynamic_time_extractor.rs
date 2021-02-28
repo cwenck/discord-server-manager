@@ -12,6 +12,7 @@ use crate::{
 };
 
 use super::TimeExtractorContext;
+#[derive(Debug)]
 pub struct DynamicTimeExtractor {
     regex: Regex,
 }

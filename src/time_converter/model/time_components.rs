@@ -1,4 +1,4 @@
-use chrono::NaiveTime;
+use chrono::{NaiveTime, Timelike};
 
 use std::fmt;
 use thiserror::Error;
@@ -66,7 +66,7 @@ impl TimeComponents {
 
     pub fn to_12h(self) -> Self {
         let TimeComponents { hour, minute, kind } =
-            self.validate().expect("Invalid input time comonents");
+            self.validate().expect("Invalid input time comonents.");
 
         let (updated_hour, updated_kind) = match (hour, kind) {
             (0, TimeKind::Military) => (12, TimeKind::AM),
@@ -77,12 +77,12 @@ impl TimeComponents {
         };
 
         TimeComponents::new(updated_hour, minute, updated_kind)
-            .expect("Invalid output time components")
+            .expect("Invalid output time components.")
     }
 
     pub fn to_24h(self) -> Self {
         let TimeComponents { hour, minute, kind } =
-            self.validate().expect("Invalid input time components");
+            self.validate().expect("Invalid input time components.");
 
         let updated_hour = match (hour, kind) {
             (12, TimeKind::AM) => 0,
@@ -92,7 +92,7 @@ impl TimeComponents {
         };
 
         TimeComponents::new(updated_hour, minute, TimeKind::Military)
-            .expect("Invalid output time components")
+            .expect("Invalid output time components.")
     }
 }
 
@@ -101,6 +101,13 @@ impl From<TimeComponents> for NaiveTime {
         let TimeComponents { hour, minute, .. } = value.to_24h();
         NaiveTime::from_hms_opt(hour, minute, 0)
             .expect("Expected time components to map to a valid time.")
+    }
+}
+
+impl From<NaiveTime> for TimeComponents {
+    fn from(value: NaiveTime) -> Self {
+        TimeComponents::new(value.hour(), value.minute(), TimeKind::Military)
+            .expect("Invalid output time components.")
     }
 }
 

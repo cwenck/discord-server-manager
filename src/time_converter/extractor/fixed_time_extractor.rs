@@ -5,6 +5,7 @@ use crate::{extractor::Extractor, time_converter::model::TimeComponents};
 
 use super::time_extractor_context::TimeExtractorContext;
 
+#[derive(Debug)]
 pub struct FixedTimeExtractor {
     regex: Regex,
     fixed_time: TimeComponents,
