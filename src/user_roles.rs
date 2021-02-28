@@ -1,3 +1,4 @@
+use log::{debug, info};
 use std::{collections::HashMap, sync::Arc};
 use thiserror::Error;
 
@@ -17,7 +18,7 @@ type UserRoleCacheResult<R> = Result<R, UserRoleCacheError>;
 #[derive(Error, Debug)]
 pub enum UserRoleCacheError {
     #[error(
-        "Failed to fetch a member with ID [{}] from the guild with ID {}. Caused by: {:?}",
+        "Failed to fetch a member with ID [{}] from the guild with ID [{}]. Caused by: {:?}",
         user_id,
         guild_id,
         cause
@@ -86,6 +87,7 @@ pub struct UserRoleUpdateHandler {
 
 impl UserRoleUpdateHandler {
     pub fn new(cache: Arc<UserRoleCache>) -> Self {
+        debug!("Created user role update handler");
         Self { cache }
     }
 }
@@ -93,6 +95,11 @@ impl UserRoleUpdateHandler {
 #[async_trait]
 impl EventHandler for UserRoleUpdateHandler {
     async fn guild_member_update(&self, _ctx: Context, event: GuildMemberUpdateEvent) {
+        info!(
+            "Received Guild Member Update Event: username={}, id={}, roles={:?}",
+            event.user.name, event.user.id, event.roles
+        );
+
         self.cache.update_roles(event.user.id, &event.roles).await;
     }
 }

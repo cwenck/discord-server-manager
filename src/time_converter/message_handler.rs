@@ -3,6 +3,7 @@ use std::{clone::Clone, collections::HashMap, fmt::Debug, sync::Arc};
 use chrono::{DateTime, Utc};
 
 use itertools::Itertools;
+use log::debug;
 use serenity::{
     async_trait,
     client::{Context, EventHandler},
@@ -52,7 +53,7 @@ pub struct MessageHandler {
     output_time_fmt: String,
 }
 
-impl<'a> MessageHandler {
+impl MessageHandler {
     pub fn new(config: Arc<Config>, user_role_cache: Arc<UserRoleCache>) -> Self {
         let time_extractors: Vec<TimeExtractor> = vec![
             Box::new(FixedTimeExtractor::new(
@@ -65,7 +66,9 @@ impl<'a> MessageHandler {
                 TimeComponents::new(12, 0, TimeKind::Military)
                     .expect("Expected valid time components."),
             )),
-            Box::new(CurrentTimeExtractor::new(r"(?i:now|(?:current\s+time))")),
+            Box::new(CurrentTimeExtractor::new(
+                r"(?i:what\s+time\s+is\s+it\s+now|(?:current\s+time))",
+            )),
             Box::new(DynamicTimeExtractor::new(
                 r"(?i:(?<!\w)(?P<hours>(?:1[012])|(?:0?[123456789]))\s*(?::\s*(?P<minutes>(?:[12345]\d)|(?:0\d)))?\s*(?P<time_kind>[ap]m)(?!\w))",
             )),
@@ -156,6 +159,8 @@ impl EventHandler for MessageHandler {
             // the bot from responding to its own messages or those from other bots.
             return;
         }
+
+        debug!("New Message:\n {}: {}", msg.author.name, msg.content);
 
         let guild_id = match msg.guild_id {
             Some(id) => id,
