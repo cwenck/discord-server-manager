@@ -11,7 +11,7 @@ where
     fn extract(&self, text: &str, ctx: &C) -> Vec<NaiveTime> {
         self.extract(text, ctx)
             .into_iter()
-            .map(|time_components| NaiveTime::from(time_components))
+            .map(NaiveTime::from)
             .collect()
     }
 }

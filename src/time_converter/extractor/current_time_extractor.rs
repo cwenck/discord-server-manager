@@ -29,7 +29,7 @@ impl<Tz: TimeZone> Extractor<TimeExtractorContext<Tz>, TimeComponents> for Curre
             result.push(ctx.message_time());
         }
 
-        return result;
+        result
     }
 }
 
