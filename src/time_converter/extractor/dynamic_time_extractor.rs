@@ -62,10 +62,7 @@ impl DynamicTimeExtractor {
     }
 
     fn validate_regex(regex: &Regex) {
-        let names: HashSet<&str> = regex
-            .capture_names()
-            .flatten()
-            .collect();
+        let names: HashSet<&str> = regex.capture_names().flatten().collect();
 
         if !Self::contains_all(&names, &REQUIRED_CAPTURE_GROUPS) {
             panic!(
