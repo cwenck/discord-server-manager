@@ -82,6 +82,7 @@ impl MessageHandler {
             .collect();
 
         let output_timezones = vec![
+            TimeZoneInfo::new("Netherlands", chrono_tz::Europe::Amsterdam),
             TimeZoneInfo::new("UK", chrono_tz::Europe::London),
             TimeZoneInfo::new("US East", chrono_tz::America::New_York),
             TimeZoneInfo::new("US West", chrono_tz::America::Los_Angeles),
@@ -116,7 +117,7 @@ impl MessageHandler {
     fn format_time(&self, time: &DateTime<Utc>, tz_info: &TimeZoneInfo) -> String {
         let zoned_time = time.with_timezone(&tz_info.tz);
         let formatted_time = zoned_time.format(&self.output_time_fmt);
-        format!("{:<8}: {}", tz_info.name, formatted_time)
+        format!("{:<12}: {}", tz_info.name, formatted_time)
     }
 
     fn construct_response(&self, times: &[DateTime<Utc>]) -> Option<String> {
