@@ -45,7 +45,8 @@ type TimeExtractor = Box<dyn Extractor<TimeExtractorContext<Tz>, DateTime<Utc>>>
 
 #[derive(Debug)]
 pub struct MessageHandler {
-    config: Arc<Config>,
+    // TODO : Consider whether _config will ever be used
+    _config: Arc<Config>,
     user_role_cache: Arc<UserRoleCache>,
     time_extractors: Vec<TimeExtractor>,
     input_timezones: HashMap<RoleId, LocationRole>,
@@ -89,7 +90,7 @@ impl MessageHandler {
         ];
 
         Self {
-            config,
+            _config: config,
             user_role_cache,
             time_extractors,
             input_timezones,
