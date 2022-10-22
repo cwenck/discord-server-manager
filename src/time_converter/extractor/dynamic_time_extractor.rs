@@ -64,8 +64,7 @@ impl DynamicTimeExtractor {
     fn validate_regex(regex: &Regex) {
         let names: HashSet<&str> = regex
             .capture_names()
-            .filter(Option::is_some)
-            .map(Option::unwrap)
+            .flatten()
             .collect();
 
         if !Self::contains_all(&names, &REQUIRED_CAPTURE_GROUPS) {
@@ -113,9 +112,9 @@ fn extract_capture<T: FromStr>(captures: &Captures, name: &str) -> Option<T> {
 }
 
 fn process_captures(captures: &Captures) -> Option<TimeComponents> {
-    let hour = extract_capture::<u32>(&captures, HOURS_CAPTURE_NAME)?;
-    let minute = extract_capture::<u32>(&captures, MINUTES_CAPTURE_NAME).unwrap_or(0);
-    let time_kind = extract_capture::<String>(&captures, TIME_KIND_CAPTURE_NAME)
+    let hour = extract_capture::<u32>(captures, HOURS_CAPTURE_NAME)?;
+    let minute = extract_capture::<u32>(captures, MINUTES_CAPTURE_NAME).unwrap_or(0);
+    let time_kind = extract_capture::<String>(captures, TIME_KIND_CAPTURE_NAME)
         .map(|it| it.to_uppercase())
         .and_then(|it| match it.as_str() {
             "AM" => Some(TimeKind::AM),
