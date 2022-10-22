@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -25,7 +25,7 @@ jobs:
           override: true
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout Code 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -54,7 +54,7 @@ jobs:
           override: true
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -82,7 +82,7 @@ jobs:
 
     steps:
       - name: Checkout Code 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -93,7 +93,7 @@ jobs:
           components: rustfmt
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -120,7 +120,7 @@ jobs:
 
     steps:
       - name: Checkout Code 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -131,7 +131,7 @@ jobs:
           components: clippy
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -158,7 +158,7 @@ jobs:
 
     steps:
       - name: Checkout Code 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -168,7 +168,7 @@ jobs:
           override: true
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -188,7 +188,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
         with:
